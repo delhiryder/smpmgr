@@ -16,7 +16,7 @@ from smpclient.requests.image_management import ImageStatesWrite
 from smpclient.requests.os_management import ResetWrite
 from typing_extensions import Annotated, assert_never
 
-from smpmgr import file_management, image_management, os_management, terminal
+from smpmgr import file_management, image_management, os_management, terminal, chirpstack_fuota
 from smpmgr.common import (
     Options,
     TransportDefinition,
@@ -40,16 +40,19 @@ app.add_typer(os_management.app)
 app.add_typer(image_management.app)
 app.add_typer(file_management.app)
 app.add_typer(intercreate.app)
+app.add_typer(chirpstack_fuota.app)
 app.command()(terminal.terminal)
 
 
+
 @app.callback(invoke_without_command=True)
-def options(
+def set_options(
     ctx: typer.Context,
     port: str = typer.Option(
         None, help="The serial port to connect to, e.g. COM1, /dev/ttyACM0, etc."
     ),
     ble: str = typer.Option(None, help="The Bluetooth address to connect to"),
+    chirpstack_fuota: str = typer.Option(None, help="The ChirpStack FUOTA Application server address"),
     timeout: float = typer.Option(
         2.0, help="Transport timeout in seconds; how long to wait for requests"
     ),
@@ -70,7 +73,7 @@ def options(
 
     setup_logging(loglevel, logfile)
 
-    ctx.obj = Options(timeout=timeout, transport=TransportDefinition(port=port, ble=ble), mtu=mtu)
+    ctx.obj = Options(timeout=timeout, transport=TransportDefinition(port=port, ble=ble, chirpstack_fuota=chirpstack_fuota), mtu=mtu)
     logger.info(ctx.obj)
 
     if ctx.invoked_subcommand is None:
