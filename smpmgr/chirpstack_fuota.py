@@ -1,11 +1,13 @@
+import asyncio
 import shelve
 import typer
 from pathlib import Path
 from smpclient.transport.chirpstack_fuota import SMPChirpstackFuotaTransport, DeploymentDevice
+from typing import Any, List
 
 CHIRPSTACK_FUOTA_DB_PATH: Path = Path.home() / ".chirpstack_fuota.db"
 
-def set_value(key: str, value: str) -> None:
+def set_value(key: str, value: Any) -> None:
     with shelve.open(str(CHIRPSTACK_FUOTA_DB_PATH)) as db:
         db[key] = value
 
@@ -88,10 +90,10 @@ def get_chirpstack_deployment_devices(ctx: typer.Context) -> None:
         devices = []
         set_value('chirpstack_deployment_devices', devices)
 
-    if len(devices) > 0:
-        typer.echo(f"Chirpstack deployment devices: {devices}")
-    else:
-        typer.echo("No Chirpstack deployment devices set")
+    typer.echo(f"Chirpstack deployment devices: {devices}")
+
+    for device in devices:
+        typer.echo(f"Device EUI: {device['device_eui']}")
 
 @app.command('add-deployment-device')
 def add_chirpstack_deployment_device(ctx: typer.Context, device_eui: str, gen_app_key: str) -> None:
@@ -106,7 +108,8 @@ def add_chirpstack_deployment_device(ctx: typer.Context, device_eui: str, gen_ap
         typer.echo(f"Device with EUI {device_eui} already exists.")
         return
 
-    devices.append({"device_eui": device_eui, "gen_app_key": gen_app_key})
+    deployment_device = DeploymentDevice(device_eui=device_eui, gen_app_key=gen_app_key)
+    devices.append(deployment_device)
     set_value('chirpstack_deployment_devices', devices)
     typer.echo(f"Chirpstack deployment device added: {device_eui}")
 
@@ -132,13 +135,66 @@ def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
     chirpstack_server_addr = get_value('chirpstack_server_addr')
     chirpstack_server_api_token = get_value('chirpstack_server_api_token')
     chirpstack_fuota_server_addr = get_value('chirpstack_fuota_server_addr')
+    chirpstack_app_id = get_value('chirpstack_app_id')
+    deployment_devices = get_value('chirpstack_deployment_devices')
 
-# @app.command('verify-app-id')
-# def verify_chirpstack_app_id(ctx: typer.Context, app_id: str) -> None:
-#     """Verify the Chirpstack application ID."""
-#     # Implementation to verify the Chirpstack application ID
-#     transport = create_chirpstack_fuota_smp_transport()
-#     if transport:
-#         typer.echo(f"Chirpstack application ID {app_id} verified")
-#     else:
-#         typer.echo(f"Chirpstack application ID {app_id} not verified")
+    return SMPChirpstackFuotaTransport(
+        chirpstack_server_addr=chirpstack_server_addr,
+        chirpstack_server_api_token=chirpstack_server_api_token,
+        chirpstack_fuota_server_addr=chirpstack_fuota_server_addr,
+        chirpstack_server_app_id=chirpstack_app_id,
+        devices=deployment_devices,
+    )
+
+
+@app.command('verify-app-id')
+def verify_chirpstack_app_id(ctx: typer.Context) -> None:
+    """Verify the Chirpstack application ID."""
+    # Implementation to verify the Chirpstack application ID
+
+    app_id = get_value('chirpstack_app_id')
+    if app_id is None:
+        typer.echo("Chirpstack application ID not set")
+        return
+
+    transport = create_chirpstack_fuota_smp_transport()
+    if transport:
+        async def f() -> bool:
+            return await transport.verify_app_id(app_id)
+
+        if asyncio.run(f()):
+            typer.echo(f"Chirpstack application ID {app_id} verified")
+        else:
+            typer.echo(f"Chirpstack application ID {app_id} not verified")
+
+@app.command('verify-deployment-devices')
+def verify_chirpstack_deployment_devices(ctx: typer.Context) -> None:
+    """Verify the Chirpstack deployment devices."""
+    # Implementation to verify the Chirpstack deployment devices
+
+    deployment_devices = get_value('chirpstack_deployment_devices')
+    if deployment_devices is None:
+        typer.echo("Chirpstack deployment devices not set")
+        return
+
+    transport = create_chirpstack_fuota_smp_transport()
+    if transport:
+        async def f() -> List[DeploymentDevice]:
+            return await transport.get_matched_devices()
+
+        matched_devices = asyncio.run(f())
+
+        if len(matched_devices) == len(deployment_devices):
+            typer.echo("All deployment devices verified")
+        else:
+            typer.echo("Not all deployment devices were verified")
+
+            # Find devices that are in deployment_devices but not in matched_devices
+            deployment_device_euis = {device["device_eui"] for device in deployment_devices}
+            matched_device_euis = {device["device_eui"] for device in matched_devices}
+            unmatched_device_euis = deployment_device_euis - matched_device_euis
+
+            typer.echo("Unmatched deployment devices:")
+            for device in deployment_devices:
+                if device["device_eui"] in unmatched_device_euis:
+                    typer.echo(f"Device EUI: {device['device_eui']}")

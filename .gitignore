@@ -15,3 +15,6 @@ mcumgr-client*
 build
 dist
 *.spec
+
+#jetbrains
+.idea
