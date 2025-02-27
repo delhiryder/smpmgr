@@ -1,4 +1,5 @@
 import asyncio
+import os
 import shelve
 import typer
 from pathlib import Path
@@ -93,28 +94,28 @@ def get_chirpstack_deployment_devices(ctx: typer.Context) -> None:
     typer.echo(f"Chirpstack deployment devices: {devices}")
 
     for device in devices:
-        typer.echo(f"Device EUI: {device['device_eui']}")
+        typer.echo(f"Device EUI: {device['dev_eui']}")
 
 @app.command('add-deployment-device')
-def add_chirpstack_deployment_device(ctx: typer.Context, device_eui: str, gen_app_key: str) -> None:
+def add_chirpstack_deployment_device(ctx: typer.Context, dev_eui: str, gen_app_key: str) -> None:
     """Add a Chirpstack deployment device."""
     # Implementation to add a Chirpstack deployment device
     devices = get_value('chirpstack_deployment_devices')
     if devices is None:
         devices = []
 
-    # Check if device_eui already exists
-    if any(device["device_eui"] == device_eui for device in devices):
-        typer.echo(f"Device with EUI {device_eui} already exists.")
+    # Check if dev_eui already exists
+    if any(device["dev_eui"] == dev_eui for device in devices):
+        typer.echo(f"Device with EUI {dev_eui} already exists.")
         return
 
-    deployment_device = DeploymentDevice(device_eui=device_eui, gen_app_key=gen_app_key)
+    deployment_device = DeploymentDevice(dev_eui=dev_eui, gen_app_key=gen_app_key)
     devices.append(deployment_device)
     set_value('chirpstack_deployment_devices', devices)
-    typer.echo(f"Chirpstack deployment device added: {device_eui}")
+    typer.echo(f"Chirpstack deployment device added: {dev_eui}")
 
 @app.command('remove-deployment-device')
-def remove_chirpstack_deployment_device(ctx: typer.Context, device_eui: str) -> None:
+def remove_chirpstack_deployment_device(ctx: typer.Context, dev_eui: str) -> None:
     """Remove a Chirpstack deployment device."""
     # Implementation to remove a Chirpstack deployment device
     devices = get_value('chirpstack_deployment_devices')
@@ -122,12 +123,12 @@ def remove_chirpstack_deployment_device(ctx: typer.Context, device_eui: str) -> 
         devices = []
 
     for device in devices:
-        if device["device_eui"] == device_eui:
+        if device["dev_eui"] == dev_eui:
             devices.remove(device)
             break
 
     set_value('chirpstack_deployment_devices', devices)
-    typer.echo(f"Chirpstack deployment device removed: {device_eui}")
+    typer.echo(f"Chirpstack deployment device removed: {dev_eui}")
 
 
 def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
@@ -190,11 +191,28 @@ def verify_chirpstack_deployment_devices(ctx: typer.Context) -> None:
             typer.echo("Not all deployment devices were verified")
 
             # Find devices that are in deployment_devices but not in matched_devices
-            deployment_device_euis = {device["device_eui"] for device in deployment_devices}
-            matched_device_euis = {device["device_eui"] for device in matched_devices}
-            unmatched_device_euis = deployment_device_euis - matched_device_euis
+            deployment_dev_euis = {device["dev_eui"] for device in deployment_devices}
+            matched_dev_euis = {device["dev_eui"] for device in matched_devices}
+            unmatched_dev_euis = deployment_dev_euis - matched_dev_euis
 
             typer.echo("Unmatched deployment devices:")
             for device in deployment_devices:
-                if device["device_eui"] in unmatched_device_euis:
-                    typer.echo(f"Device EUI: {device['device_eui']}")
+                if device["dev_eui"] in unmatched_dev_euis:
+                    typer.echo(f"Device EUI: {device['dev_eui']}")
+
+@app.command('test-dummy-send')
+def test_dummy_deployment(ctx: typer.Context, size: int) -> None:
+    """Test a dummy firmware image send."""
+    # Implementation to test a dummy deployment
+
+    # Random bytes
+    dummy_data = os.urandom(size)
+
+    transport = create_chirpstack_fuota_smp_transport()
+    if transport:
+        async def f() -> None:
+            await transport.connect(get_value('chirpstack_fuota_server_addr'), 10.0)
+            await transport.send(dummy_data)
+
+        asyncio.run(f())
+        typer.echo("Dummy send completed")
