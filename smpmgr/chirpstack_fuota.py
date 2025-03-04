@@ -4,7 +4,7 @@ import shelve
 import typer
 from pathlib import Path
 from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
-                                                  ChirpstackFuotaDownlinkSpeed)
+                                                  ChirpstackFuotaDownlinkSpeed, ChirpstackFuotaMulticastGroupTypes)
 from typing import Any, List
 
 CHIRPSTACK_FUOTA_DB_PATH: Path = Path.home() / ".chirpstack_fuota.db"
@@ -148,6 +148,23 @@ def get_chirpstack_downlink_speed(ctx: typer.Context) -> None:
     else:
         typer.echo("Chirpstack FUOTA downlink speed not set")
 
+@app.command('set-multicast-group-type')
+def set_chirpstack_multicast_group_type(ctx: typer.Context,
+                                        multicast_group_type: ChirpstackFuotaMulticastGroupTypes) -> None:
+    """Set the Chirpstack FUOTA multicast group type."""
+    # Implementation to set the Chirpstack FUOTA multicast group type
+    set_value('chirpstack_multicast_group_type', multicast_group_type)
+    typer.echo(f"Chirpstack FUOTA multicast group type set to: {multicast_group_type}")
+
+@app.command('get-multicast-group-type')
+def get_chirpstack_multicast_group_type(ctx: typer.Context) -> None:
+    """Get the Chirpstack FUOTA multicast group type."""
+    multicast_group_type = get_value('chirpstack_multicast_group_type')
+    if multicast_group_type:
+        typer.echo(f"Chirpstack FUOTA multicast group type: {multicast_group_type}")
+    else:
+        typer.echo("Chirpstack FUOTA multicast group type not set")
+
 def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
     # Implementation to create a Chirpstack FUOTA SMP transport
     chirpstack_server_addr = get_value('chirpstack_server_addr')
@@ -158,6 +175,7 @@ def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
     downlink_speed = get_value('chirpstack_downlink_speed')
 
     return SMPChirpstackFuotaTransport(
+        multicast_group_type=get_value('chirpstack_multicast_group_type'),
         chirpstack_server_addr=chirpstack_server_addr,
         chirpstack_server_api_token=chirpstack_server_api_token,
         chirpstack_fuota_server_addr=chirpstack_fuota_server_addr,
