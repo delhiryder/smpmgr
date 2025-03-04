@@ -418,7 +418,7 @@ grpcio = "*"
 
 [[package]]
 name = "chirpstack-fuota-client"
-version = "0.1.1"
+version = "0.1.9"
 description = ""
 optional = false
 python-versions = ">=3.8,<4.0"
@@ -434,10 +434,8 @@ protobuf = "^5.28.2"
 pycryptodome = "^3.21.0"
 
 [package.source]
-type = "git"
-url = "https://github.com/Zylum-Inc/chirpstack-fuota-client.git"
-reference = "HEAD"
-resolved_reference = "82ffc7c9ff14e192360f58ebe6c72875b9a4ba89"
+type = "directory"
+url = "../chirpstack-fuota-client"
 
 [[package]]
 name = "click"
@@ -1760,7 +1758,7 @@ pydantic = ">=2.6,<3.0"
 
 [[package]]
 name = "smpclient"
-version = "0.0.2"
+version = "0.0.11"
 description = "Simple Management Protocol (SMP) Client for remotely managing MCU firmware"
 optional = false
 python-versions = ">=3.8.1, <3.14"
@@ -1772,7 +1770,7 @@ develop = false
 async-timeout = {version = "^4.0.3", markers = "python_version < \"3.11\""}
 bleak = "^0.22.1"
 chirpstack-api = "^4.11.0"
-chirpstack_fuota_client = {git = "https://github.com/Zylum-Inc/chirpstack-fuota-client.git"}
+chirpstack_fuota_client = {path = "../chirpstack-fuota-client"}
 intelhex = "^2.3.0"
 pyserial = "^3.5"
 smp = "^3.1.1"

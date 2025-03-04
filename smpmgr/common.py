@@ -15,6 +15,7 @@ from smpclient.transport.ble import SMPBLETransport
 from smpclient.transport.serial import SMPSerialTransport
 from smpclient.transport.chirpstack_fuota import SMPChirpstackFuotaTransport
 
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 TSMPClient = TypeVar(

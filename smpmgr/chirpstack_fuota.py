@@ -3,7 +3,8 @@ import os
 import shelve
 import typer
 from pathlib import Path
-from smpclient.transport.chirpstack_fuota import SMPChirpstackFuotaTransport, DeploymentDevice
+from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
+                                                  ChirpstackFuotaDownlinkSpeed)
 from typing import Any, List
 
 CHIRPSTACK_FUOTA_DB_PATH: Path = Path.home() / ".chirpstack_fuota.db"
@@ -130,6 +131,22 @@ def remove_chirpstack_deployment_device(ctx: typer.Context, dev_eui: str) -> Non
     set_value('chirpstack_deployment_devices', devices)
     typer.echo(f"Chirpstack deployment device removed: {dev_eui}")
 
+@app.command('set-downlink-speed')
+def set_chirpstack_downlink_speed(ctx: typer.Context,
+                                  speed: ChirpstackFuotaDownlinkSpeed ) -> None:
+    """Set the Chirpstack FUOTA downlink speed."""
+    # Implementation to set the Chirpstack FUOTA downlink speed
+    set_value('chirpstack_downlink_speed', speed)
+    typer.echo(f"Chirpstack FUOTA downlink speed set to: {speed}")
+
+@app.command('get-downlink-speed')
+def get_chirpstack_downlink_speed(ctx: typer.Context) -> None:
+    """Get the Chirpstack FUOTA downlink speed."""
+    speed = get_value('chirpstack_downlink_speed')
+    if speed:
+        typer.echo(f"Chirpstack FUOTA downlink speed: {speed}")
+    else:
+        typer.echo("Chirpstack FUOTA downlink speed not set")
 
 def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
     # Implementation to create a Chirpstack FUOTA SMP transport
@@ -138,6 +155,7 @@ def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
     chirpstack_fuota_server_addr = get_value('chirpstack_fuota_server_addr')
     chirpstack_app_id = get_value('chirpstack_app_id')
     deployment_devices = get_value('chirpstack_deployment_devices')
+    downlink_speed = get_value('chirpstack_downlink_speed')
 
     return SMPChirpstackFuotaTransport(
         chirpstack_server_addr=chirpstack_server_addr,
@@ -145,6 +163,7 @@ def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
         chirpstack_fuota_server_addr=chirpstack_fuota_server_addr,
         chirpstack_server_app_id=chirpstack_app_id,
         devices=deployment_devices,
+        downlink_speed=downlink_speed
     )
 
 
