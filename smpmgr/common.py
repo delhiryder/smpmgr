@@ -64,7 +64,7 @@ def get_custom_smpclient(options: Options, smp_client_cls: Type[TSMPClient]) -> 
             f"Initializing SMPClient with the SMPBLETransport, {options.transport.chirpstack_fuota=}"
         )
         return smp_client_cls(
-            SMPChirpstackFuotaTransport(),
+            SMPChirpstackFuotaTransport(chirpstack_server_addr=options.transport.chirpstack_fuota),
             options.transport.chirpstack_fuota,
         )
     else:
