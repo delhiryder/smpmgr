@@ -1,0 +1,14 @@
+# ChirpStack Fuota SMPTransport configuration
+[chirpstack]
+server_addr = "localhost:8080"
+api_token = ""
+
+[fuota]
+server_addr = "localhost:8070"
+# The app_id with which the devices are associated
+app_id = ""
+# The list of dev_eui, gen_app_key pairs to send the firmware chunks to
+# [{dev_eui = "", gen_app_key = ""}, ...]
+deployment_devices = []
+downlink_speed = "DL_SLOW"
+multicast_group_type = "CLASS_C"
