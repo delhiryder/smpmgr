@@ -1,35 +1,48 @@
 import asyncio
 import os
-import shelve
+
 import typer
+import toml
 from pathlib import Path
 from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
                                                   ChirpstackFuotaDownlinkSpeed, ChirpstackFuotaMulticastGroupTypes)
 from typing import Any, List
 
-CHIRPSTACK_FUOTA_DB_PATH: Path = Path.home() / ".chirpstack_fuota.db"
-
-def set_value(key: str, value: Any) -> None:
-    with shelve.open(str(CHIRPSTACK_FUOTA_DB_PATH)) as db:
-        db[key] = value
-
-def get_value(key: str) -> str:
-    with shelve.open(str(CHIRPSTACK_FUOTA_DB_PATH)) as db:
-        return db.get(key, None)
-
 app = typer.Typer(name="chirpstack-fuota", help="Chirpstack FUOTA transport configuration group")
+
+CONFIG_PATH: Path = Path.cwd() / "chirpstack_fuota.toml"
+
+def load_config() -> dict:
+    if CONFIG_PATH.exists():
+        with open(CONFIG_PATH, 'r') as f:
+            return toml.load(f)
+    else:
+        return {"chirpstack": {}, "fuota": {}}
+
+def save_config(config: dict) -> None:
+    with open(CONFIG_PATH, 'w') as f:
+        toml.dump(config, f)
+
+config = load_config()
+
+@app.command('set-config-path')
+def set_config_path(ctx: typer.Context, path: str) -> None:
+    """Set the configuration file path."""
+    global CONFIG_PATH
+    CONFIG_PATH = Path(path)
+    typer.echo(f"Configuration file path set to: {path}")
 
 @app.command('set-server-addr')
 def set_chirpstack_server_addr(ctx: typer.Context, address: str) -> None:
     """Set the Chirpstack server address."""
-    # Implementation to set the Chirpstack FUOTA server address
-    set_value('chirpstack_server_addr', address)
+    config['chirpstack']['server_addr'] = address
+    save_config(config)
     typer.echo(f"Chirpstack server address set to: {address}")
 
 @app.command('get-server-addr')
 def get_chirpstack_server_addr(ctx: typer.Context) -> None:
     """Get the Chirpstack server address."""
-    address = get_value('chirpstack_server_addr')
+    address = config['chirpstack'].get('server_addr')
     if address:
         typer.echo(f"Chirpstack server address: {address}")
     else:
@@ -38,14 +51,14 @@ def get_chirpstack_server_addr(ctx: typer.Context) -> None:
 @app.command('set-server-api-token')
 def set_chirpstack_server_api_token(ctx: typer.Context, token: str) -> None:
     """Set the Chirpstack server API token."""
-    # Implementation to set the Chirpstack FUOTA server API token
-    set_value('chirpstack_server_api_token', token)
+    config['chirpstack']['api_token'] = token
+    save_config(config)
     typer.echo("Chirpstack server API token set")
 
 @app.command('get-server-api-token')
 def get_chirpstack_server_api_token(ctx: typer.Context) -> None:
     """Get the Chirpstack server API token."""
-    token = get_value('chirpstack_server_api_token')
+    token = config['chirpstack'].get('api_token')
     if token:
         typer.echo("Chirpstack server API token set")
     else:
@@ -54,14 +67,14 @@ def get_chirpstack_server_api_token(ctx: typer.Context) -> None:
 @app.command('set-fuota-server-addr')
 def set_chirpstack_app_server_addr(ctx: typer.Context, address: str) -> None:
     """Set the Chirpstack FUOTA application server address."""
-    # Implementation to set the Chirpstack FUOTA application server address
-    set_value('chirpstack_fuota_server_addr', address)
+    config['fuota']['server_addr'] = address
+    save_config(config)
     typer.echo(f"Chirpstack FUOTA application server address set to: {address}")
 
 @app.command('get-fuota-server-addr')
 def get_chirpstack_app_server_addr(ctx: typer.Context) -> None:
     """Get the Chirpstack FUOTA application server address."""
-    address = get_value('chirpstack_fuota_server_addr')
+    address = config['fuota'].get('server_addr')
     if address:
         typer.echo(f"Chirpstack FUOTA application server address: {address}")
     else:
@@ -70,14 +83,14 @@ def get_chirpstack_app_server_addr(ctx: typer.Context) -> None:
 @app.command('set-app-id')
 def set_chirpstack_app_id(ctx: typer.Context, app_id: str) -> None:
     """Set the Chirpstack application ID."""
-    # Implementation to set the Chirpstack application ID
-    set_value('chirpstack_app_id', app_id)
+    config['fuota']['app_id'] = app_id
+    save_config(config)
     typer.echo(f"Chirpstack application ID set to: {app_id}")
 
 @app.command('get-app-id')
 def get_chirpstack_app_id(ctx: typer.Context) -> None:
     """Get the Chirpstack application ID."""
-    app_id = get_value('chirpstack_app_id')
+    app_id = config['fuota'].get('app_id')
     if app_id:
         typer.echo(f"Chirpstack application ID: {app_id}")
     else:
@@ -86,102 +99,82 @@ def get_chirpstack_app_id(ctx: typer.Context) -> None:
 @app.command('get-deployment-devices')
 def get_chirpstack_deployment_devices(ctx: typer.Context) -> None:
     """Get the list of Chirpstack deployment devices."""
-    # Implementation to list the Chirpstack deployment devices
-    devices = get_value('chirpstack_deployment_devices')
-    if devices is None:
-        devices = []
-        set_value('chirpstack_deployment_devices', devices)
-
+    devices = config['fuota'].get('deployment_devices', [])
     typer.echo(f"Chirpstack deployment devices: {devices}")
-
     for device in devices:
         typer.echo(f"Device EUI: {device['dev_eui']}")
 
 @app.command('add-deployment-device')
 def add_chirpstack_deployment_device(ctx: typer.Context, dev_eui: str, gen_app_key: str) -> None:
     """Add a Chirpstack deployment device."""
-    # Implementation to add a Chirpstack deployment device
-    devices = get_value('chirpstack_deployment_devices')
-    if devices is None:
-        devices = []
-
-    # Check if dev_eui already exists
+    devices = config['fuota'].get('deployment_devices', [])
     if any(device["dev_eui"] == dev_eui for device in devices):
         typer.echo(f"Device with EUI {dev_eui} already exists.")
         return
-
-    deployment_device = DeploymentDevice(dev_eui=dev_eui, gen_app_key=gen_app_key)
+    deployment_device = {"dev_eui": dev_eui, "gen_app_key": gen_app_key}
     devices.append(deployment_device)
-    set_value('chirpstack_deployment_devices', devices)
+    config['fuota']['deployment_devices'] = devices
+    save_config(config)
     typer.echo(f"Chirpstack deployment device added: {dev_eui}")
 
 @app.command('remove-deployment-device')
 def remove_chirpstack_deployment_device(ctx: typer.Context, dev_eui: str) -> None:
     """Remove a Chirpstack deployment device."""
-    # Implementation to remove a Chirpstack deployment device
-    devices = get_value('chirpstack_deployment_devices')
-    if devices is None:
-        devices = []
-
-    for device in devices:
-        if device["dev_eui"] == dev_eui:
-            devices.remove(device)
-            break
-
-    set_value('chirpstack_deployment_devices', devices)
+    devices = config['fuota'].get('deployment_devices', [])
+    devices = [device for device in devices if device["dev_eui"] != dev_eui]
+    config['fuota']['deployment_devices'] = devices
+    save_config(config)
     typer.echo(f"Chirpstack deployment device removed: {dev_eui}")
 
 @app.command('set-downlink-speed')
-def set_chirpstack_downlink_speed(ctx: typer.Context,
-                                  speed: ChirpstackFuotaDownlinkSpeed ) -> None:
+def set_chirpstack_downlink_speed(ctx: typer.Context, speed: ChirpstackFuotaDownlinkSpeed) -> None:
     """Set the Chirpstack FUOTA downlink speed."""
-    # Implementation to set the Chirpstack FUOTA downlink speed
-    set_value('chirpstack_downlink_speed', speed)
+    config['fuota']['downlink_speed'] = speed.value
+    save_config(config)
     typer.echo(f"Chirpstack FUOTA downlink speed set to: {speed}")
 
 @app.command('get-downlink-speed')
 def get_chirpstack_downlink_speed(ctx: typer.Context) -> None:
     """Get the Chirpstack FUOTA downlink speed."""
-    speed = get_value('chirpstack_downlink_speed')
+    speed = config['fuota'].get('downlink_speed')
     if speed:
         typer.echo(f"Chirpstack FUOTA downlink speed: {speed}")
     else:
         typer.echo("Chirpstack FUOTA downlink speed not set")
 
 @app.command('set-multicast-group-type')
-def set_chirpstack_multicast_group_type(ctx: typer.Context,
-                                        multicast_group_type: ChirpstackFuotaMulticastGroupTypes) -> None:
+def set_chirpstack_multicast_group_type(ctx: typer.Context, multicast_group_type: ChirpstackFuotaMulticastGroupTypes) -> None:
     """Set the Chirpstack FUOTA multicast group type."""
-    # Implementation to set the Chirpstack FUOTA multicast group type
-    set_value('chirpstack_multicast_group_type', multicast_group_type)
+    config['fuota']['multicast_group_type'] = multicast_group_type.value
+    save_config(config)
     typer.echo(f"Chirpstack FUOTA multicast group type set to: {multicast_group_type}")
 
 @app.command('get-multicast-group-type')
 def get_chirpstack_multicast_group_type(ctx: typer.Context) -> None:
     """Get the Chirpstack FUOTA multicast group type."""
-    multicast_group_type = get_value('chirpstack_multicast_group_type')
+    multicast_group_type = config['fuota'].get('multicast_group_type')
     if multicast_group_type:
         typer.echo(f"Chirpstack FUOTA multicast group type: {multicast_group_type}")
     else:
         typer.echo("Chirpstack FUOTA multicast group type not set")
 
-def create_chirpstack_fuota_smp_transport() -> SMPChirpstackFuotaTransport:
-    # Implementation to create a Chirpstack FUOTA SMP transport
-    chirpstack_server_addr = get_value('chirpstack_server_addr')
-    chirpstack_server_api_token = get_value('chirpstack_server_api_token')
-    chirpstack_fuota_server_addr = get_value('chirpstack_fuota_server_addr')
-    chirpstack_app_id = get_value('chirpstack_app_id')
-    deployment_devices = get_value('chirpstack_deployment_devices')
-    downlink_speed = get_value('chirpstack_downlink_speed')
+def create_chirpstack_fuota_smp_transport(config_path: str = None) -> SMPChirpstackFuotaTransport:
+    if config_path is None:
+        config_path = CONFIG_PATH
 
+    with open(config_path, 'r') as f:
+        local_config = toml.load(f)
+
+    chirpstack_config = local_config['chirpstack']
+    fuota_config = local_config['fuota']
     return SMPChirpstackFuotaTransport(
-        multicast_group_type=get_value('chirpstack_multicast_group_type'),
-        chirpstack_server_addr=chirpstack_server_addr,
-        chirpstack_server_api_token=chirpstack_server_api_token,
-        chirpstack_fuota_server_addr=chirpstack_fuota_server_addr,
-        chirpstack_server_app_id=chirpstack_app_id,
-        devices=deployment_devices,
-        downlink_speed=downlink_speed
+        multicast_group_type=fuota_config.get('multicast_group_type'),
+        chirpstack_server_addr=chirpstack_config.get('server_addr'),
+        chirpstack_server_api_token=chirpstack_config.get('api_token'),
+        chirpstack_fuota_server_addr=fuota_config.get('server_addr'),
+        chirpstack_server_app_id=fuota_config.get('app_id'),
+        devices=fuota_config.get('deployment_devices', []),
+        downlink_speed=fuota_config.get('downlink_speed')
     )
 
 
@@ -190,7 +183,7 @@ def verify_chirpstack_app_id(ctx: typer.Context) -> None:
     """Verify the Chirpstack application ID."""
     # Implementation to verify the Chirpstack application ID
 
-    app_id = get_value('chirpstack_app_id')
+    app_id =  config['fuota'].get('app_id')
     if app_id is None:
         typer.echo("Chirpstack application ID not set")
         return
@@ -210,7 +203,7 @@ def verify_chirpstack_deployment_devices(ctx: typer.Context) -> None:
     """Verify the Chirpstack deployment devices."""
     # Implementation to verify the Chirpstack deployment devices
 
-    deployment_devices = get_value('chirpstack_deployment_devices')
+    deployment_devices = config['fuota'].get('deployment_devices', [])
     if deployment_devices is None:
         typer.echo("Chirpstack deployment devices not set")
         return
@@ -248,7 +241,7 @@ def test_dummy_deployment(ctx: typer.Context, size: int) -> None:
     transport = create_chirpstack_fuota_smp_transport()
     if transport:
         async def f() -> None:
-            await transport.connect(get_value('chirpstack_fuota_server_addr'), 10.0)
+            await transport.connect(config['fuota'].get('server_addr'), 10.0)
             await transport.send(dummy_data)
 
         asyncio.run(f())
