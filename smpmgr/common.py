@@ -14,6 +14,7 @@ from smpclient.generics import SMPRequest, TEr1, TEr2, TRep
 from smpclient.transport.ble import SMPBLETransport
 from smpclient.transport.serial import SMPSerialTransport
 from smpclient.transport.chirpstack_fuota import SMPChirpstackFuotaTransport
+from .chirpstack_fuota import create_chirpstack_fuota_smp_transport
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -64,7 +65,7 @@ def get_custom_smpclient(options: Options, smp_client_cls: Type[TSMPClient]) -> 
             f"Initializing SMPClient with the SMPBLETransport, {options.transport.chirpstack_fuota=}"
         )
         return smp_client_cls(
-            SMPChirpstackFuotaTransport(chirpstack_server_addr=options.transport.chirpstack_fuota),
+            create_chirpstack_fuota_smp_transport(options.transport.chirpstack_fuota),
             options.transport.chirpstack_fuota,
         )
     else:
