@@ -4,6 +4,7 @@ import os
 import typer
 import toml
 from pathlib import Path
+from smpclient import SMPClient
 from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
                                                   ChirpstackFuotaDownlinkSpeed, ChirpstackFuotaMulticastGroupTypes)
 from typing import Any, List
@@ -231,18 +232,24 @@ def verify_chirpstack_deployment_devices(ctx: typer.Context) -> None:
                     typer.echo(f"Device EUI: {device['dev_eui']}")
 
 @app.command('test-dummy-send')
-def test_dummy_deployment(ctx: typer.Context, size: int) -> None:
+def test_dummy_deployment(ctx: typer.Context, size: int, config_file_path: str) -> None:
     """Test a dummy firmware image send."""
     # Implementation to test a dummy deployment
 
     # Random bytes
     dummy_data = os.urandom(size)
 
-    transport = create_chirpstack_fuota_smp_transport()
-    if transport:
-        async def f() -> None:
-            await transport.connect(config['fuota'].get('server_addr'), 10.0)
-            await transport.send(dummy_data)
+    transport = create_chirpstack_fuota_smp_transport(config_file_path)
 
-        asyncio.run(f())
+    if transport:
+        local_smpclient = SMPClient(transport=transport, address="localhost:8080")
+
+        async def f(smpclient: SMPClient) -> None:
+            await smpclient.connect()
+
+            async for offset in smpclient.upload(dummy_data, first_timeout_s=1000.0, subsequent_timeout_s=1000.0):
+                typer.echo(f"Uploading {offset=}")
+
+        asyncio.run(f(local_smpclient))
+
         typer.echo("Dummy send completed")
