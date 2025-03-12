@@ -88,6 +88,11 @@ def setup_logging(loglevel: LogLevel | None, logfile: Path | None) -> None:
     handlers[NAME_CONSOLE_HANDLER].setLevel(
         loglevel.value if loglevel is not None else logging.WARNING
     )  # UI console log level set from --loglevel
+
+
+    # Set the level for the root logger to WARNING if no loglevel is provided
+    logging.getLogger().setLevel(loglevel.value if loglevel is not None else logging.WARNING)
+
     logging.info(f"Console log level: {logging.getLevelName(handlers[NAME_CONSOLE_HANDLER].level)}")
 
     if file_handler is not None:

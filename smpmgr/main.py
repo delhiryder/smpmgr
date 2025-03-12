@@ -73,6 +73,8 @@ def set_options(
 
     setup_logging(loglevel, logfile)
 
+    logger.info(f"port: {port}, ble: {ble}, chirpstack_fuota: {chirpstack_fuota}, timeout: {timeout}, mtu: {mtu}")
+
     ctx.obj = Options(timeout=timeout, transport=TransportDefinition(port=port, ble=ble, chirpstack_fuota=chirpstack_fuota), mtu=mtu)
     logger.info(ctx.obj)
 

@@ -21,6 +21,7 @@ from smpclient import SMPClient
 from smpclient.generics import error, success
 from smpclient.mcuboot import ImageInfo
 from smpclient.requests.image_management import ImageStatesRead, ImageStatesWrite
+from smpclient.transport.chirpstack_fuota import SMPChirpstackFuotaTransport
 from typing_extensions import Annotated
 
 from smpmgr.common import Options, connect_with_spinner, get_smpclient, smp_request
@@ -102,8 +103,15 @@ async def upload_with_progress_bar(
         image = file.read()
         file.close()
         task = progress.add_task("Uploading", total=len(image), filename=file.name, start=True)
+        first_timeout_s = 1000.0
+        subsequent_timeout_s = 1000.0
+        # TODO: Make the timeout adjustments conditional for the chirpstack_fuota transport
+        # if isinstance(smpclient._transport, SMPChirpstackFuotaTransport):
+        #     first_timeout_s = 500.0
+        #     subsequent_timeout_s = 500.0
+
         try:
-            async for offset in smpclient.upload(image, slot):
+            async for offset in smpclient.upload(image, slot, first_timeout_s=first_timeout_s, subsequent_timeout_s=subsequent_timeout_s):
                 progress.update(task, completed=offset)
                 logger.info(f"Upload {offset=}")
         except SMPBadStartDelimiter as e:

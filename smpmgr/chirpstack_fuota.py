@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import os
 
 import typer
@@ -166,6 +167,8 @@ def create_chirpstack_fuota_smp_transport(config_path: str = None) -> SMPChirpst
     with open(config_path, 'r') as f:
         local_config = toml.load(f)
 
+    logging.getLogger('chirpstack_fuota').setLevel(logging.WARN)
+
     chirpstack_config = local_config['chirpstack']
     fuota_config = local_config['fuota']
     return SMPChirpstackFuotaTransport(
@@ -247,9 +250,31 @@ def test_dummy_deployment(ctx: typer.Context, size: int, config_file_path: str) 
         async def f(smpclient: SMPClient) -> None:
             await smpclient.connect()
 
+            typer.echo("Dummy send starting...")
+
             async for offset in smpclient.upload(dummy_data, first_timeout_s=1000.0, subsequent_timeout_s=1000.0):
                 typer.echo(f"Uploading {offset=}")
 
         asyncio.run(f(local_smpclient))
 
         typer.echo("Dummy send completed")
+
+@app.command('get-deployment-status')
+def get_deployment_status(ctx: typer.Context, id: str, config_file_path: str) -> Any:
+    """Get the deployment status."""
+    # Implementation to get the deployment status
+    transport = create_chirpstack_fuota_smp_transport(config_file_path)
+
+    local_smpclient = SMPClient(transport=transport, address="localhost:8080")
+
+    async def f(smpclient: SMPClient) -> Any:
+        await smpclient.connect()
+
+        typer.echo("Dummy send starting...")
+
+        return await transport.get_deployment_status(id)
+
+    status = asyncio.run(f(local_smpclient))
+
+    # This is a placeholder implementation
+    typer.echo(f"Deployment status: {status}")
