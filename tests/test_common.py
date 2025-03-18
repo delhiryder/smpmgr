@@ -22,7 +22,7 @@ def test_get_smpclient_chirpstack_fuota():
     smpclient = get_smpclient(options)
     assert isinstance(smpclient._transport, SMPChirpstackFuotaTransport)
     assert smpclient._transport._chirpstack_server_addr == "54.166.56.164:8080"
-    assert smpclient._transport.mtu == 1024
+    assert smpclient._transport.mtu == 2048
 
 @pytest.mark.asyncio
 async def test_connect():
