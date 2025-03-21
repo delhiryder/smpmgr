@@ -1,9 +1,12 @@
 import asyncio
+import json
 import logging
 import os
 
 import typer
 import toml
+from smp import header as smphdr
+from smp import image_management as smpimg
 from pathlib import Path
 from smpclient import SMPClient
 from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
@@ -278,3 +281,20 @@ def get_deployment_status(ctx: typer.Context, id: str, config_file_path: str) ->
 
     # This is a placeholder implementation
     typer.echo(f"Deployment status: {status}")
+
+@app.command('print-sample-uplink-sizes')
+def print_sample_packet_sizes(ctx: typer.Context) -> None:
+    """Print sample packet sizes for different Chirpstack FUOTA configurations."""
+    # Implementation to print sample packet sizes
+
+    # Create dummy image states
+
+    image_state_1 = smpimg.ImageState(slot=0, version='0.2.1', hash=b'\x01' * 32, bootable=True, pending=False, confirmed=True, active=True, permanent=False)
+    image_state_2 = smpimg.ImageState(slot=1, version='0.3.0', hash=b'\x02' * 32, bootable=True, pending=True, confirmed=False, active=False, permanent=False)
+
+    response = smpimg.ImageStatesReadResponse(images=[image_state_1, image_state_2], splitStatus=0)
+
+    for image in response.images:
+        print(image)
+
+    typer.echo(f"ImageStateReadResponse len: {len(response.BYTES)} Header size: {response.header.SIZE} ")
