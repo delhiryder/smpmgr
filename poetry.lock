@@ -418,7 +418,7 @@ grpcio = "*"
 
 [[package]]
 name = "chirpstack-fuota-client"
-version = "0.1.13"
+version = "0.1.14"
 description = ""
 optional = false
 python-versions = ">=3.8,<4.0"
@@ -1734,7 +1734,7 @@ pydantic = ">=2.6,<3.0"
 
 [[package]]
 name = "smpclient"
-version = "0.0.42"
+version = "0.0.57"
 description = "Simple Management Protocol (SMP) Client for remotely managing MCU firmware"
 optional = false
 python-versions = ">=3.8.1, <3.14"
@@ -1749,6 +1749,7 @@ chirpstack-api = "^4.11.0"
 chirpstack_fuota_client = {path = "../chirpstack-fuota-client"}
 intelhex = "^2.3.0"
 pyserial = "^3.5"
+requests = "^2.29.0"
 smp = "^3.1.1"
 
 [package.source]

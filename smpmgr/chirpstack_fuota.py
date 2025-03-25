@@ -2,15 +2,22 @@ import asyncio
 import json
 import logging
 import os
+import time
 
 import typer
 import toml
 from smp import header as smphdr
 from smp import image_management as smpimg
 from pathlib import Path
+
+from smp.os_management import MCUMgrParametersReadResponse
 from smpclient import SMPClient
 from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
                                                   ChirpstackFuotaDownlinkSpeed, ChirpstackFuotaMulticastGroupTypes)
+
+from smpclient.requests.os_management import MCUMgrParametersRead
+
+from chirpstack_fuota_client import DeviceService
 from typing import Any, List
 
 app = typer.Typer(name="chirpstack-fuota", help="Chirpstack FUOTA transport configuration group")
@@ -174,6 +181,7 @@ def create_chirpstack_fuota_smp_transport(config_path: str = None) -> SMPChirpst
 
     chirpstack_config = local_config['chirpstack']
     fuota_config = local_config['fuota']
+    tas_config = local_config['tas']
     return SMPChirpstackFuotaTransport(
         multicast_group_type=fuota_config.get('multicast_group_type'),
         chirpstack_server_addr=chirpstack_config.get('server_addr'),
@@ -181,7 +189,9 @@ def create_chirpstack_fuota_smp_transport(config_path: str = None) -> SMPChirpst
         chirpstack_fuota_server_addr=fuota_config.get('server_addr'),
         chirpstack_server_app_id=fuota_config.get('app_id'),
         devices=fuota_config.get('deployment_devices', []),
-        downlink_speed=fuota_config.get('downlink_speed')
+        downlink_speed=fuota_config.get('downlink_speed'),
+        tas_api_addr=tas_config.get('server_addr'),
+        tas_api_lns_id=tas_config.get('lns_id'),
     )
 
 
@@ -298,3 +308,22 @@ def print_sample_packet_sizes(ctx: typer.Context) -> None:
         print(image)
 
     typer.echo(f"ImageStateReadResponse len: {len(response.BYTES)} Header size: {response.header.SIZE} ")
+
+@app.command('get-mcumgr-parameters')
+def get_mcumgr_parameters(ctx: typer.Context, config_file_path: str, dev_eui: str) -> None:
+
+    transport = create_chirpstack_fuota_smp_transport(config_file_path)
+
+    if transport:
+        typer.echo("Creating mcumgr request")
+
+        async def f(local_transport: SMPChirpstackFuotaTransport) -> None:
+            mcumgr_request = MCUMgrParametersRead()
+            typer.echo(f"Request: {mcumgr_request}, size: {len(mcumgr_request.BYTES)}")
+            await local_transport.send_unicast(dev_eui, mcumgr_request.BYTES, 2)
+            typer.echo("Request sent, waiting for response...")
+            frame = await local_transport.receive_unicast(int(time.time()), dev_eui, 2, 30.0)
+            mcumgr_response = MCUMgrParametersReadResponse.loads(frame)
+            typer.echo(f"Response: {mcumgr_response}")
+
+        asyncio.run(f(transport))
