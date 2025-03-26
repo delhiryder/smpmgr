@@ -322,7 +322,7 @@ def get_mcumgr_parameters(ctx: typer.Context, config_file_path: str, dev_eui: st
             typer.echo(f"Request: {mcumgr_request}, size: {len(mcumgr_request.BYTES)}")
             await local_transport.send_unicast(dev_eui, mcumgr_request.BYTES, 2)
             typer.echo("Request sent, waiting for response...")
-            frame = await local_transport.receive_unicast(int(time.time()), dev_eui, 2, 30.0)
+            frame = await local_transport.receive_unicast(int(time.time()) - 30 , dev_eui, 2, 30.0)
             mcumgr_response = MCUMgrParametersReadResponse.loads(frame)
             typer.echo(f"Response: {mcumgr_response}")
 
