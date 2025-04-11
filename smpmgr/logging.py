@@ -48,6 +48,7 @@ def setup_logging(loglevel: LogLevel | None, logfile: Path | None) -> None:
         rich_tracebacks=True, tracebacks_suppress=[click, typer, asyncio, serial]
     )
     base_console_handler.name = NAME_CONSOLE_HANDLER
+    base_console_handler.setLevel(logging.WARNING)  # Set base handler to WARNING
 
     console_handler = (
         RichHandler(rich_tracebacks=True, tracebacks_suppress=[click, typer, asyncio, serial])
@@ -77,20 +78,21 @@ def setup_logging(loglevel: LogLevel | None, logfile: Path | None) -> None:
     # update the old handlers with the new handlers
     handlers = {base_console_handler.name: base_console_handler} | old_handlers | new_handlers
 
+    # Set root logger level based on the provided loglevel or default to WARNING
+    root_level = getattr(logging, loglevel.value) if loglevel is not None else logging.WARNING
     logging.basicConfig(
-        level=logging.NOTSET,  # root logger logs everything
+        level=root_level,  # Set root logger to respect the loglevel
         format=(DEBUG_FORMAT if loglevel == LogLevel.DEBUG else DEFAULT_FORMAT),
         datefmt="[%X]",
         handlers=handlers.values(),
         force=True,
     )
 
-    handlers[NAME_CONSOLE_HANDLER].setLevel(
-        loglevel.value if loglevel is not None else logging.WARNING
-    )  # UI console log level set from --loglevel
-    logging.info(f"Console log level: {logging.getLevelName(handlers[NAME_CONSOLE_HANDLER].level)}")
+    if console_handler is not None and loglevel is not None:
+        console_handler.setLevel(
+            getattr(logging, loglevel.value)
+        )  # UI console log level set from --loglevel
 
     if file_handler is not None:
         file_handler.setLevel(logging.DEBUG)  # file logs are always DEBUG
         file_handler.setFormatter(logging.Formatter(LOGFILE_FORMAT))
-        logging.info(f"Log file {logfile} log level: {logging.getLevelName(file_handler.level)}")
