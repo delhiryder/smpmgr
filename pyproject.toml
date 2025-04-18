@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "smpmgr"
-version = "0"
+version = "0.1.0"
 description = "Simple Management Protocol (SMP) Manager for remotely managing MCU firmware"
 authors = ["J.P. Hutchins <jp@intercreate.io>"]
 readme = "README.md"
@@ -18,6 +18,7 @@ python = ">=3.10, <3.14"
 smpclient = { git = "https://github.com/Zylum-Inc/smpclient", branch = "chirpstack-fuota-support" }
 typer = { extras = ["all"], version = "^0.9.0" }
 readchar = "^4.0.5"
+tomli = "^2.2.1"
 
 
 [tool.poetry.group.dev.dependencies]
