@@ -3,6 +3,7 @@
 import asyncio
 import logging
 from dataclasses import dataclass, fields
+from pathlib import Path
 from typing import Type, TypeVar
 
 import typer
@@ -13,7 +14,8 @@ from smpclient import SMPClient
 from smpclient.generics import SMPRequest, TEr1, TEr2, TRep
 from smpclient.transport.ble import SMPBLETransport
 from smpclient.transport.serial import SMPSerialTransport
-from smpclient.transport.chirpstack_fuota import SMPChirpstackFuotaTransport
+
+from smpmgr.chirpstack_fuota import create_chirpstack_fuota_smp_transport
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,11 +62,14 @@ def get_custom_smpclient(options: Options, smp_client_cls: Type[TSMPClient]) -> 
             options.transport.ble,
         )
     elif options.transport.chirpstack_fuota is not None:
-        logger.info(
-            f"Initializing SMPClient with the SMPBLETransport, {options.transport.chirpstack_fuota=}"
-        )
+        logger.info("Initializing SMPClient with the SMPChirpstackFuotaTransport")
+        config_path = Path(options.transport.chirpstack_fuota)
+        if not config_path.exists():
+            typer.echo(f"Configuration file not found: {config_path}")
+            raise typer.Exit(code=1)
+        transport = create_chirpstack_fuota_smp_transport(config_path)
         return smp_client_cls(
-            SMPChirpstackFuotaTransport(),
+            transport,
             options.transport.chirpstack_fuota,
         )
     else:
