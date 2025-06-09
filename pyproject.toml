@@ -15,11 +15,12 @@ source = "git-tag"
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.14"
-#smpclient = { git = "https://github.com/Zylum-Inc/smpclient", branch = "chirpstack-fuota-support" }
+# smpclient = { git = "https://github.com/Zylum-Inc/smpclient", branch = "chirpstack-fuota-support" }
 typer = { extras = ["all"], version = "^0.9.0" }
 readchar = "^4.0.5"
 smpclient = {path = "../smpclient"}
 toml = "^0.10.2"
+smp = "3.3.1"
 
 
 [tool.poetry.group.dev.dependencies]

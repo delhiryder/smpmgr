@@ -9,14 +9,18 @@ import toml
 from smp import header as smphdr
 from smp import image_management as smpimg
 from pathlib import Path
+from hashlib import sha256
 
 from smp.os_management import MCUMgrParametersReadResponse
 from smpclient import SMPClient
 from smpclient.transport.chirpstack_fuota import (SMPChirpstackFuotaTransport, DeploymentDevice,
                                                   ChirpstackFuotaDownlinkSpeed, ChirpstackFuotaMulticastGroupTypes)
 
+from smpclient.requests.image_management import ImageUploadWrite
+
 from smpclient.requests.os_management import MCUMgrParametersRead
 
+from smpclient.mcuboot import ImageInfo
 from chirpstack_fuota_client import DeviceService
 from typing import Any, List
 
@@ -325,5 +329,44 @@ def get_mcumgr_parameters(ctx: typer.Context, config_file_path: str, dev_eui: st
             frame = await local_transport.receive_unicast(int(time.time()) - 30 , dev_eui, 2, 30.0)
             mcumgr_response = MCUMgrParametersReadResponse.loads(frame)
             typer.echo(f"Response: {mcumgr_response}")
+
+        asyncio.run(f(transport))
+
+@app.command('get-image-upload-write-response')
+def get_image_upload_write_response(ctx: typer.Context, config_file_path: str, dev_eui: str, image_file_path: str) -> None:
+    transport = create_chirpstack_fuota_smp_transport(config_file_path)
+
+    if transport:
+        typer.echo("Creating image upload request")
+
+        async def f(local_transport: SMPChirpstackFuotaTransport) -> None:
+            try:
+                image_info = ImageInfo.load_file(str(image_file_path))
+                typer.echo(str(image_info))
+            except Exception:
+                typer.echo("Inspection of FW image failed")
+                raise typer.Exit(code=1)
+
+            file = open(image_file_path, "rb")
+            image = file.read()
+            file.close()
+
+            await local_transport.connect("localhost:8080", 30.0)
+
+            image_upload_request = ImageUploadWrite(
+                off=0,
+                data=b"",
+                image=0,
+                len=len(image),
+                sha=sha256(image).digest(),
+                upgrade=False
+            )
+
+            typer.echo(f"Request: {image_upload_request}, size: {len(image_upload_request.BYTES)}")
+
+            frame = await local_transport.send_and_receive(image_upload_request.BYTES)
+
+            image_upload_response = smpimg.ImageUploadWriteResponse.loads(frame)
+            typer.echo(f"Response: {image_upload_response}")
 
         asyncio.run(f(transport))
