@@ -1,20 +1,21 @@
 # ChirpStack Fuota SMPTransport configuration
 [chirpstack]
-server_addr = "54.166.56.164:8080"
-api_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6IjY1ZmY2NTRlLTVhYTgtNGFjMy1iMTdmLTExZDlmMjJmMmUxYyIsInR5cCI6ImtleSJ9.fxBsg5OwReTC2rQihYn-s8HCfRXE_aCKdrcsple-wvM"
+server_addr = "10.15.65.62:8080"
+api_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjaGlycHN0YWNrIiwiaXNzIjoiY2hpcnBzdGFjayIsInN1YiI6ImM0YjE1YzgwLTFhNTQtNGZiYS1iNmQxLTMwNmEyOWI3OTgxNSIsInR5cCI6ImtleSJ9.ljjFb6krsr3AijO40NUd1esP5tQBEoSrDWfH6YVxohU"
 
 [fuota]
-server_addr = "54.166.56.164:8070"
+server_addr = "10.15.65.62:8070"
 # The app_id with which the devices are associated
-app_id = "28c978af-212a-4e48-87af-b4655e650b79"
+app_id = "d8b18cd8-719e-4cc0-91f6-8d671445fe28"
 # The list of dev_eui, gen_app_key pairs to send the firmware chunks to
 # [{dev_eui = "", gen_app_key = ""}, ...]
-deployment_devices = [{dev_eui="9eef3ebb6a791a18", gen_app_key="09000000000000000000000000000000"}]
+deployment_devices = [{dev_eui="a5f2ff676efc6bf7", gen_app_key="d8548200000000000000000000000001"}]
+
 downlink_speed = "DL_SLOW"
 multicast_group_type = "CLASS_C"
 
 [tas]
 # Needed to get (unicast) uplink messages from the chirpstack connected devices
-server_addr = "http://54.166.56.164:8002"
-lns_id = "aea1f3d6-bc17-4162-b5c1-ddf71c8811ed"
+server_addr = "http://10.15.65.62:8000/"
+lns_id = "89575db0-0f3e-435b-8e1c-251d60590289"
 
