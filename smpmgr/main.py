@@ -40,7 +40,7 @@ app.add_typer(os_management.app)
 app.add_typer(image_management.app)
 app.add_typer(file_management.app)
 app.add_typer(intercreate.app)
-app.add_typer(chirpstack_fuota.app)
+# app.add_typer(chirpstack_fuota.app)
 app.command()(terminal.terminal)
 
 
@@ -52,7 +52,7 @@ def set_options(
         None, help="The serial port to connect to, e.g. COM1, /dev/ttyACM0, etc."
     ),
     ble: str = typer.Option(None, help="The Bluetooth address to connect to"),
-    chirpstack_fuota: str = typer.Option(None, help="The ChirpStack FUOTA Application server address"),
+    chirpstack_fuota: str = typer.Option("chirpstack_fuota.toml", help="The ChirpStack FUOTA config file path"),
     timeout: float = typer.Option(
         2.0, help="Transport timeout in seconds; how long to wait for requests"
     ),
