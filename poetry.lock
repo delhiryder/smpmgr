@@ -421,8 +421,10 @@ protobuf = "^6.31.1"
 pycryptodome = "^3.21.0"
 
 [package.source]
-type = "directory"
-url = "../chirpstack-fuota-client"
+type = "git"
+url = "https://github.com/Zylum-Inc/chirpstack-fuota-client.git"
+reference = "smpclient_support"
+resolved_reference = "cc00847abac91559704b99e2be062b4e526eb75a"
 
 [[package]]
 name = "click"
@@ -1815,7 +1817,7 @@ develop = false
 async-timeout = {version = "^4.0.3", markers = "python_version < \"3.11\""}
 bleak = "^0.22.1"
 chirpstack-api = "^4.11.0"
-chirpstack_fuota_client = {path = "../chirpstack-fuota-client"}
+chirpstack_fuota_client = {git = "https://github.com/Zylum-Inc/chirpstack-fuota-client.git", branch = "smpclient_support"}
 intelhex = "^2.3.0"
 pyserial = "^3.5"
 requests = "^2.29.0"
