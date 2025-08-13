@@ -16,7 +16,7 @@ from smpclient.requests.image_management import ImageStatesWrite
 from smpclient.requests.os_management import ResetWrite
 from typing_extensions import Annotated, assert_never
 
-from smpmgr import file_management, image_management, os_management, terminal, chirpstack_fuota
+from smpmgr import chirpstack_fuota, file_management, image_management, os_management, terminal
 from smpmgr.common import (
     Options,
     TransportDefinition,
@@ -44,7 +44,6 @@ app.add_typer(intercreate.app)
 app.command()(terminal.terminal)
 
 
-
 @app.callback(invoke_without_command=True)
 def set_options(
     ctx: typer.Context,
@@ -52,7 +51,11 @@ def set_options(
         None, help="The serial port to connect to, e.g. COM1, /dev/ttyACM0, etc."
     ),
     ble: str = typer.Option(None, help="The Bluetooth address to connect to"),
-    chirpstack_fuota: str = typer.Option("chirpstack_fuota.toml", help="The ChirpStack FUOTA config file path"),
+
+
+    chirpstack_fuota: str = typer.Option(
+        "chirpstack_fuota.toml", help="The ChirpStack FUOTA config file path"
+    ),
     timeout: float = typer.Option(
         2.0, help="Transport timeout in seconds; how long to wait for requests"
     ),
@@ -73,9 +76,15 @@ def set_options(
 
     setup_logging(loglevel, logfile)
 
-    logger.info(f"port: {port}, ble: {ble}, chirpstack_fuota: {chirpstack_fuota}, timeout: {timeout}, mtu: {mtu}")
+    logger.info(
+        f"port: {port}, ble: {ble}, chirpstack_fuota: {chirpstack_fuota}, timeout: {timeout}, mtu: {mtu}"
+    )
 
-    ctx.obj = Options(timeout=timeout, transport=TransportDefinition(port=port, ble=ble, chirpstack_fuota=chirpstack_fuota), mtu=mtu)
+    ctx.obj = Options(
+        timeout=timeout,
+        transport=TransportDefinition(port=port, ble=ble, chirpstack_fuota=chirpstack_fuota),
+        mtu=mtu,
+    )
     logger.info(ctx.obj)
 
     if ctx.invoked_subcommand is None:

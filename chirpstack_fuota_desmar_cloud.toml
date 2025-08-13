@@ -9,7 +9,7 @@ server_addr = "54.166.56.164:8070"
 app_id = "28c978af-212a-4e48-87af-b4655e650b79"
 # The list of dev_eui, gen_app_key pairs to send the firmware chunks to
 # [{dev_eui = "", gen_app_key = ""}, ...]
-deployment_devices = [{dev_eui="d52366d875b91e53", gen_app_key="b14f57fea91c1a852b66166721b3df93"}]
+deployment_devices = [{dev_eui="029a64fe73a5069a", gen_app_key="d8548200000000000000000000000001"}]
 
 downlink_speed = "DL_SLOW"
 multicast_group_type = "CLASS_C"
