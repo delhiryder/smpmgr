@@ -1805,7 +1805,7 @@ pydantic = ">=2.6,<3.0"
 
 [[package]]
 name = "smpclient"
-version = "0.0.92"
+version = "0.0.94"
 description = "Simple Management Protocol (SMP) Client for remotely managing MCU firmware"
 optional = false
 python-versions = ">=3.9, <3.14"
