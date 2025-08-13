@@ -1824,8 +1824,10 @@ requests = "^2.29.0"
 smp = "^3.1.1"
 
 [package.source]
-type = "directory"
-url = "../smpclient"
+type = "git"
+url = "https://github.com/Zylum-Inc/smpclient"
+reference = "chirpstack-fuota-support"
+resolved_reference = "6710c2bf885f3c56129a122cf964ef6a16b5ee6e"
 
 [[package]]
 name = "toml"
@@ -2225,4 +2227,4 @@ all = ["winrt-Windows.Foundation.Collections[all] (==2.3.0)", "winrt-Windows.Fou
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10, <3.14"
-content-hash = "bd75b2e2fa97600581f708b440ddc95709c6ac117c07612e6cd97a0237d7a601"
+content-hash = "2c19cc1667c1db8d9e600a4e583b69c220dcf002c25adcdd2c69c50dc7173e44"
