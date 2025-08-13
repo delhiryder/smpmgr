@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "smpmgr"
-version = "0.0.4"
+version = "0.0.5"
 description = "Simple Management Protocol (SMP) Manager for remotely managing MCU firmware"
 authors = ["J.P. Hutchins <jp@intercreate.io>"]
 readme = "README.md"
