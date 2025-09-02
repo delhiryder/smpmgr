@@ -1805,7 +1805,7 @@ pydantic = ">=2.6,<3.0"
 
 [[package]]
 name = "smpclient"
-version = "0.1.4"
+version = "0.1.12"
 description = "Simple Management Protocol (SMP) Client for remotely managing MCU firmware"
 optional = false
 python-versions = ">=3.9, <3.14"
@@ -1827,7 +1827,7 @@ smp = "^3.1.1"
 type = "git"
 url = "https://github.com/Zylum-Inc/smpclient"
 reference = "chirpstack-fuota-support"
-resolved_reference = "411681aa04e761197e987892725c924e0714a282"
+resolved_reference = "486e1f87ff20ccec24aa8042e00caabc111731c0"
 
 [[package]]
 name = "toml"
